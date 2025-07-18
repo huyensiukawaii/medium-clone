@@ -2,10 +2,12 @@ import {
   ConflictException,
   Injectable,
   UnauthorizedException,
+  NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 
@@ -65,6 +67,48 @@ export class UsersService {
     const token = await this.generateJwtToken(user);
     return { user, token };
   }
+
+  // Get User Profile
+  async findOneById(id: string) {
+  const user = await this.prisma.user.findUnique({ where: { id } });
+  if (!user) {
+    throw new NotFoundException('User not found.');
+  }
+  return user;
+}
+  // Update User Info
+  async update(id: string, updateUserDto: UpdateUserDto) {
+  const { email, username, password, bio, image } = updateUserDto;
+  const user = await this.prisma.user.findUnique({ where: { id } });
+  if (!user) { throw new NotFoundException('User not found.'); }
+  if (email && email !== user.email) {
+    const existingUser = await this.prisma.user.findUnique({ where: { email } });
+    if (existingUser) { throw new ConflictException('Email is already taken.'); }
+  }
+  if (username && username !== user.username) {
+    const existingUser = await this.prisma.user.findUnique({ where: { username } });
+    if (existingUser) { throw new ConflictException('Username is already taken.'); }
+  }
+
+  let hashedPassword = user.password;
+  if (password) {
+    hashedPassword = await this.hashPassword(password);
+  }
+
+  const updatedUser = await this.prisma.user.update({
+    where: { id },
+    data: {
+      email: email || user.email,
+      username: username || user.username,
+      password: hashedPassword,
+      bio: bio !== undefined ? bio : user.bio,
+      image: image !== undefined ? image : user.image,
+    },
+  });
+
+  const token = await this.generateJwtToken(updatedUser);
+  return { user: updatedUser, token };
+}
 
   // Helpers (Private methods)
   private async hashPassword(password: string): Promise<string> {
