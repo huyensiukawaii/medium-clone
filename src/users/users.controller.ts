@@ -1,4 +1,3 @@
-
 import {
   Body,
   Controller,
@@ -11,11 +10,11 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { UserResponseDto } from './dto/user-response.dto';
 
-@Controller('users') // Base route for registration/login
+@Controller('users') 
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Post('/') // POST /api/users (Registration)
+  @Post('') 
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
   async register(
     @Body('user') createUserDto: CreateUserDto,
@@ -24,7 +23,7 @@ export class UsersController {
     return new UserResponseDto(user, token);
   }
 
-  @Post('login') // POST /api/users/login (Login)
+  @Post('login') 
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
   async login(
     @Body('user') loginUserDto: LoginUserDto,
@@ -33,3 +32,4 @@ export class UsersController {
     return new UserResponseDto(user, token);
   }
 }
+
