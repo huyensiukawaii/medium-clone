@@ -1,4 +1,4 @@
-import { IsEmail, IsOptional, MinLength } from 'class-validator';
+import { IsEmail, IsOptional, MinLength, ValidateIf  } from 'class-validator';
 
 export class UpdateUserDto {
   @IsOptional()
@@ -17,4 +17,7 @@ export class UpdateUserDto {
 
   @IsOptional()
   image?: string;
+
+  @ValidateIf(o => o.password !== undefined) 
+  passwordConfirmation?: string;
 }
