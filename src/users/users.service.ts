@@ -3,6 +3,7 @@ import {
   Injectable,
   UnauthorizedException,
   NotFoundException,
+  BadRequestException
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -18,7 +19,6 @@ export class UsersService {
     private jwtService: JwtService,
   ) {}
 
-  // Register User
   async create(createUserDto: CreateUserDto) {
     const { username, email, password } = createUserDto;
 
@@ -50,7 +50,6 @@ export class UsersService {
     return { user, token };
   }
 
-  // Login User
   async login(loginUserDto: LoginUserDto) {
     const { email, password } = loginUserDto;
 
@@ -68,22 +67,21 @@ export class UsersService {
     return { user, token };
   }
 
-  // Get User Profile
-  async findOneById(id: string) {
+  async findById(id: string) {
   const user = await this.prisma.user.findUnique({ where: { id } });
   if (!user) {
     throw new NotFoundException('User not found.');
-  }
+    } 
   return user;
-}
-  // Update User Info
+  }
+
   async update(id: string, updateUserDto: UpdateUserDto) {
-  const { email, username, password, bio, image } = updateUserDto;
-  const user = await this.prisma.user.findUnique({ where: { id } });
-  if (!user) { throw new NotFoundException('User not found.'); }
-  if (email && email !== user.email) {
-    const existingUser = await this.prisma.user.findUnique({ where: { email } });
-    if (existingUser) { throw new ConflictException('Email is already taken.'); }
+    const { email, username, password, passwordConfirmation, bio, image } = updateUserDto;
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    if (!user) { throw new NotFoundException('User not found.'); }
+    if (email && email !== user.email) {
+      const existingUser = await this.prisma.user.findUnique({ where: { email } });
+      if (existingUser) { throw new ConflictException('Email is already taken.'); }
   }
   if (username && username !== user.username) {
     const existingUser = await this.prisma.user.findUnique({ where: { username } });
@@ -92,6 +90,12 @@ export class UsersService {
 
   let hashedPassword = user.password;
   if (password) {
+    if (passwordConfirmation === undefined) {
+            throw new BadRequestException('Please enter password confirmation,');
+    }
+    if (password !== passwordConfirmation) {
+            throw new BadRequestException('New password and password confirmation do not match.');
+        }
     hashedPassword = await this.hashPassword(password);
   }
 
@@ -110,7 +114,6 @@ export class UsersService {
   return { user: updatedUser, token };
 }
 
-  // Helpers (Private methods)
   private async hashPassword(password: string): Promise<string> {
     const salt = await bcrypt.genSalt(10);
     return bcrypt.hash(password, salt);

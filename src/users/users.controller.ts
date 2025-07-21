@@ -43,7 +43,7 @@ export class UsersController {
 export class CurrentUserController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Get('') 
+  @Get() 
   @Auth() 
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true })) 
   async getCurrentUser(@GetUser() user: User): Promise<UserResponseDto> {
@@ -51,7 +51,7 @@ export class CurrentUserController {
     return new UserResponseDto(user, token);
   }
 
-  @Put('')
+  @Put()
   @Auth() 
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
   async updateCurrentUser(@GetUser() user: User, @Body('user') updateUserDto: UpdateUserDto): Promise<UserResponseDto> {
