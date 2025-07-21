@@ -68,11 +68,11 @@ export class UsersService {
   }
 
   async findById(id: string) {
-  const user = await this.prisma.user.findUnique({ where: { id } });
-  if (!user) {
-    throw new NotFoundException('User not found.');
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    if (!user) {
+      throw new NotFoundException('User not found.');
     } 
-  return user;
+    return user;
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {
@@ -91,11 +91,11 @@ export class UsersService {
   let hashedPassword = user.password;
   if (password) {
     if (passwordConfirmation === undefined) {
-            throw new BadRequestException('Please enter password confirmation,');
+      throw new BadRequestException('Please enter password confirmation.');
     }
     if (password !== passwordConfirmation) {
-            throw new BadRequestException('New password and password confirmation do not match.');
-        }
+      throw new BadRequestException('New password and password confirmation do not match.');
+    }
     hashedPassword = await this.hashPassword(password);
   }
 
