@@ -18,6 +18,6 @@ export class UpdateUserDto {
   @IsOptional()
   image?: string;
 
-  @ValidateIf(o => o.password !== undefined) // Chỉ validate nếu trường password được cung cấp
+  @ValidateIf(o => o.password !== undefined) 
   passwordConfirmation?: string;
 }
