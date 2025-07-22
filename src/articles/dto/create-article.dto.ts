@@ -15,7 +15,7 @@ export class CreateArticleDto {
 
   @IsOptional() 
   @IsArray()
-  @ArrayNotEmpty({ message: 'Tag list cannot be an empty array if provided.' }) // Nếu có, không được rỗng
+  @ArrayNotEmpty({ message: 'Tag list cannot be an empty array if provided.' }) 
   @IsString({ each: true }) 
   tagList?: string[]; 
 }

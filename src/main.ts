@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import * as dotenv from 'dotenv'; 
+import { HttpExceptionFilter } from './http-exception/http-exception.filter';
 
 declare const module: {
   hot?: {
@@ -24,6 +25,8 @@ async function bootstrap() {
     credentials: true, 
   });
 
+  app.useGlobalFilters(new HttpExceptionFilter());
+  
   const port = process.env.PORT || 3000;
   await app.listen(port);
 
