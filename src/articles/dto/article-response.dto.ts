@@ -13,7 +13,7 @@ export class ArticleResponseDto {
     author: ProfileDto;
   };
 
-  constructor(article: Article, author: User) {
+  constructor(article: Article & { author: User }) {
     this.article = {
       slug: article.slug,
       title: article.title,
@@ -22,7 +22,7 @@ export class ArticleResponseDto {
       tagList: JSON.parse(article.tagList || '[]'),
       createdAt: article.createdAt.toISOString(),
       updatedAt: article.updatedAt.toISOString(),
-      author: new ProfileDto(author),
+      author: new ProfileDto(article.author),
     };
   }
 }
