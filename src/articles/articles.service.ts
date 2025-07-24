@@ -2,7 +2,10 @@ import { Injectable, NotFoundException, UnauthorizedException, ConflictException
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { UpdateArticleDto } from './dto/update-article.dto';
-import { Article, User } from '@prisma/client';
+import { Article, User, Follows, Prisma } from '@prisma/client';
+import { ListArticlesDto } from './dto/list-articles.dto'
+import { ArticleListResponseDto } from './dto/article-list-response.dto'
+import { ArticleResponseDto } from './dto/article-response.dto'
 import slugify from 'slugify';
 
 @Injectable()
@@ -78,6 +81,95 @@ export class ArticlesService {
 
     await this.prisma.article.delete({ where: { slug } });
   }
+
+  async findAllArticles(query: ListArticlesDto): Promise<ArticleListResponseDto> {
+    const { tag, author, limit = 20, offset = 0 } = query;
+  
+    const whereClause: Prisma.ArticleWhereInput = {};
+
+    if (tag) {
+      whereClause.tagList = { contains: `"${tag}"` };
+    }
+
+    if (author) {
+      const authorUser = await this.prisma.user.findUnique({
+        where: { username: author },
+        select: { id: true },
+      });
+
+      if (!authorUser) {
+        return { articles: [], articlesCount: 0 };
+      }
+      whereClause.authorId = authorUser.id;
+    }
+
+    const [articles, totalCount] = await this.prisma.$transaction([
+      this.prisma.article.findMany({
+        where: whereClause,
+        take: limit,
+        skip: offset,
+        include: {
+          author: true,
+        },
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.article.count({
+        where: whereClause,
+      }),
+    ]);
+
+    const articleDtos: ArticleResponseDto[] = articles.map(article => {
+      return new ArticleResponseDto(article);
+    });
+
+    return new ArticleListResponseDto(articleDtos, totalCount);
+  }
+
+  async findFeedArticles(query: ListArticlesDto, currentUserId: string): Promise<ArticleListResponseDto> {
+    const { limit = 20, offset = 0 } = query;
+
+    const followingUsers = await this.prisma.follows.findMany({
+      where: {
+        followerId: currentUserId,
+      },
+      select: {
+        followingId: true, 
+      },
+    });
+
+    const followingIds = followingUsers.map(f => f.followingId); 
+    if (followingIds.length === 0) {
+      return { articles: [], articlesCount: 0 };
+    }
+
+    const whereClause = {
+      authorId: {
+        in: followingIds, 
+      },
+    };
+
+    const [articles, totalCount] = await this.prisma.$transaction([
+      this.prisma.article.findMany({
+        where: whereClause,
+        take: limit,
+        skip: offset,
+        include: {
+          author: true,
+        },
+        orderBy: { createdAt: 'desc' }, 
+      }),
+      this.prisma.article.count({
+        where: whereClause,
+      }),
+    ]);
+
+    const articleDtos: ArticleResponseDto[] = articles.map(article => {
+      return new ArticleResponseDto(article);
+    });
+
+    return new ArticleListResponseDto(articleDtos, totalCount);
+  }
+
 
   private generateSlug(title: string): string {
     return slugify(title, { lower: true, strict: true });
