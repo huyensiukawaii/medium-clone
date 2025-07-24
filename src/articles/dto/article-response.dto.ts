@@ -1,5 +1,5 @@
 import { Article, User } from '@prisma/client'; 
-import { UserResponseForArticleDto } from '../../users/dto/user-response-for-article.dto'; 
+import { ProfileDto } from '../../users/dto/profile.dto'; 
 
 export class ArticleResponseDto {
   article: {
@@ -10,7 +10,7 @@ export class ArticleResponseDto {
     tagList: string[];
     createdAt: string; 
     updatedAt: string; 
-    author: UserResponseForArticleDto;
+    author: ProfileDto;
   };
 
   constructor(article: Article, author: User) {
@@ -22,7 +22,7 @@ export class ArticleResponseDto {
       tagList: JSON.parse(article.tagList || '[]'),
       createdAt: article.createdAt.toISOString(),
       updatedAt: article.updatedAt.toISOString(),
-      author: new UserResponseForArticleDto(author),
+      author: new ProfileDto(author),
     };
   }
 }
