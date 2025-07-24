@@ -2,7 +2,7 @@ import { Injectable, NotFoundException, UnauthorizedException, ConflictException
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { UpdateArticleDto } from './dto/update-article.dto';
-import { Article, User, Follows } from '@prisma/client';
+import { Article, User, Follows, Prisma } from '@prisma/client';
 import { ListArticlesDto } from './dto/list-articles.dto'
 import { ArticleListResponseDto } from './dto/article-list-response.dto'
 import { ArticleResponseDto } from './dto/article-response.dto'
@@ -85,7 +85,7 @@ export class ArticlesService {
   async findAllArticles(query: ListArticlesDto): Promise<ArticleListResponseDto> {
     const { tag, author, limit = 20, offset = 0 } = query;
   
-    const whereClause: any = {};
+    const whereClause: Prisma.ArticleWhereInput = {};
 
     if (tag) {
       whereClause.tagList = { contains: `"${tag}"` };
