@@ -37,4 +37,16 @@ model Article {
   updatedAt   DateTime  @updatedAt
   authorId    String
   author      User      @relation(fields: [authorId], references: [id])
+  comments    Comment[]
+}
+
+model Comment {
+  id        String    @id @default(uuid())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  body      String
+  authorId  String
+  articleId String
+  author    User      @relation(fields: [authorId], references: [id])
+  article   Article   @relation(fields: [articleId], references: [id])
 }
